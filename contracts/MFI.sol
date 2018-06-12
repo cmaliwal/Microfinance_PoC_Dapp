@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.17;
 import "./SafeMath.sol";
 
 contract MFI {
@@ -9,12 +9,12 @@ contract MFI {
     mapping(address => uint256) deposits;
     mapping(address => uint256) borrowings;
     uint256 totalFund = 0;
-    
+
     uint256 intRate = 30;
     uint256 depIntRate = 20;
-    
+
     address public owner;
-    
+
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
@@ -22,7 +22,7 @@ contract MFI {
         owner = msg.sender;
         totalFund = 0;
     }
-    
+
     function() public payable { }
 
     function sender() view public returns (address) {
@@ -46,7 +46,7 @@ contract MFI {
         deposits[_to] = deposits[_to].add(_value);
 
         totalFund += _value;
-        Transfer(msg.sender, owner, _value);
+        emit Transfer(msg.sender, owner, _value);
 
         return true;
     }
@@ -59,14 +59,14 @@ contract MFI {
         require(_value <= totalFund);
         borrowings[msg.sender] = borrowings[msg.sender].add(_value);
         totalFund -= _value;
-        
+
         return true;
     }
-    
+
     function approve(address _to, uint256 _value) public returns (bool) {
         //allowed[msg.sender][_spender] = _value;
-        Approval(msg.sender, _to, _value);
-        Transfer(owner, _to, _value);
+        emit Approval(msg.sender, _to, _value);
+        emit Transfer(owner, _to, _value);
         return true;
     }
 /*
@@ -82,21 +82,21 @@ contract MFI {
         totalFund -= toPay;
 
         deposits[_to] = deposits[_to].sub(_amount);
-        Transfer(owner, _to, toPay);
+        emit Transfer(owner, _to, toPay);
 
         return true;
     }
-    
+
     function paybackToOwner(address _to, uint256 _amount) payable public returns (bool) {
         require(_to != address(0));
         require(_amount <= borrowings[msg.sender]);
-        
+
         borrowings[msg.sender] = borrowings[msg.sender].sub(_amount);
         uint256 toPay;
         toPay = _amount + ( _amount * intRate / 100);
         totalFund += toPay;
-        Transfer(msg.sender, _to, toPay);
-        
+        emit Transfer(msg.sender, _to, toPay);
+
         return true;
     }
 }
